@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Login</string>
+    <string name="label_btn_login">Login</string>
+    <string name="label_btn_email">Via Email</string>
+    <string name="label_btn_google_login">Via Google</string>
+    <string name="label_btn_fb_login">Via Facebook</string>
+    <string name="label_btn_register">Register</string>
+    <string name="gender">Gender</string>
+    <string name="city">City</string>
+    <string name="title_register">Register to MyClubApp</string>
+    <string name="full_name">Full Name</string>
+    <string name="dob">DOB</string>
+    <string name="cb_club_admin">ClubAdmin</string>
+    <string name="password">Password</string>
+    <string name="email">Email</string>
+</resources>
