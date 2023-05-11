@@ -23,7 +23,7 @@ import kotlinx.coroutines.flow.collectLatest
 
 
 private var loggedInUser : User? = null
-private var selectedClub: Club = Club()
+private var selectedClub: Club? = null
 @Composable
 fun AddPost(navController: NavHostController) {
 
@@ -51,6 +51,7 @@ fun AddPost(navController: NavHostController) {
     val cityEditText = rememberSaveable() {
         mutableStateOf("")
     }
+
     val linkEditText = rememberSaveable() {
         mutableStateOf("")
     }
@@ -151,7 +152,7 @@ fun AddPost(navController: NavHostController) {
                     title = titleEditText.value,
                     city = cityEditText.value,
                     desc = descriptionEditText.value,
-                    club = selectedClub,
+                    club = selectedClub ?: Club(),
                     link = linkEditText.value,
                      user = loggedInUser!!
                 )){

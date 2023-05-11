@@ -13,21 +13,24 @@ import com.google.firebase.ktx.Firebase
 
 
 @Composable
-fun LoginNavigation(){
+fun LoginNavigation() {
 
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = LoginEnum.LoginScreen.name, route = Graph.AUTH){
+    NavHost(
+        navController = navController,
+        startDestination = LoginEnum.LoginScreen.name, route = Graph.AUTH
+    ) {
 
-        composable(route =LoginEnum.LoginScreen.name){
+        composable(route = LoginEnum.LoginScreen.name) {
             LoginScreen(navController)
         }
 
-        composable(route = LoginEnum.RegisterScreen.name){
+        composable(route = LoginEnum.RegisterScreen.name) {
             RegisterScreen(navController = navController)
         }
     }
 }
 
-fun checkUserStatus() : Boolean{
+fun checkUserStatus(): Boolean {
     return Firebase.auth.currentUser != null
 }

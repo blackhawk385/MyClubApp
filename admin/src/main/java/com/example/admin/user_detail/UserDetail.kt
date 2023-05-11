@@ -40,7 +40,7 @@ fun UserDetail(navController: NavHostController) {
         SharedPreference(context).getUser {
             loggedInUser = it
             FirebaseUtil.getSingleDocument("user", it.uuid) {
-                userData = it
+                userData = FirebaseUtil.createUserData(it)
             }
         }
 

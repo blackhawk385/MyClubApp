@@ -70,7 +70,8 @@ fun AddClub(navController: NavHostController) {
         is AppState.Loading -> showProgressBar.value = true
         is AppState.Success -> {
             showProgressBar.value = false
-            navController.navigate(AdminEnum.AdminDashboardScreen.name)
+            navController.popBackStack()
+//            navController.navigate(AdminEnum.AdminDashboardScreen.name)
         }
     }
 

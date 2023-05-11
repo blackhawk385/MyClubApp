@@ -38,62 +38,35 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
+var loggedInUser: User? = null
+
 class MainActivity : ComponentActivity() {
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-//        CoroutineScope(Dispatchers.IO).launch {
-//            SharedPreference(applicationContext).getUser {
-//                it
-//            }
-//        }
-
-
-
-        setContent {
-            MyClubAppTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    color = MaterialTheme.colors.background
-                ) {
-                    Column(modifier = Modifier.fillMaxSize()) {
-                        if (checkUserStatus()) {
-                            AdminNavigation()
-                        } else {
-                            RootNavigationHostController()
-                        }
-                    }
-                }
+        CoroutineScope(Dispatchers.IO).launch {
+            SharedPreference(applicationContext).getUser {
+                loggedInUser = it
             }
         }
+        setContent {
+            navigation()
+        }
     }
+
 }
 
-@Composable
-fun Greeting(name: String) {
-    Text(text = "Hello $name!")
-}
 
-@Preview(showBackground = true)
 @Composable
-fun DefaultPreview() {
-    MyClubAppTheme {
-        Greeting("Android")
+fun navigation() {
+    loggedInUser?.let { user ->
+        if (checkUserStatus() && user.isAdmin) {
+            AdminNavigation()
+        } else if (checkUserStatus()) {
+            MemberNavigation()
+        } else {
+            RootNavigationHostController()
+        }
     }
-}
-
-@Composable
-fun HomeScreen() {
-    Text(text = "Home")
-}
-
-@Composable
-fun AboutScreen() {
-    Text(text = "AboutScreen")
-}
-
-@Composable
-fun SettingsScreen() {
-    Text(text = "SettingsScreen")
 }

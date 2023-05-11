@@ -29,7 +29,7 @@ class LoginViewModel(val repository: ILoginRepository) : ViewModel() {
     fun getUserFromFirebase(uuid: String, context: Context) {
         FirebaseUtil.getSingleDocument("user", uuid) { firebaseUser ->
             viewModelScope.launch {
-                SharedPreference(context).setUser(firebaseUser)
+                SharedPreference(context).setUser(FirebaseUtil.createUserData(firebaseUser))
             }
         }
     }

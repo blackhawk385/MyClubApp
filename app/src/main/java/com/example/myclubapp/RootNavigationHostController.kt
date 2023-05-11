@@ -5,6 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.admin.AdminNavigation
 import com.example.common.Graph
 import com.example.login.LoginEnum
 import com.example.login.LoginNavigation
@@ -22,7 +23,7 @@ fun RootNavigationHostController(){
             LoginNavigation()
         }
         composable(route = Graph.ADMIN){
-//            A()
+            AdminNavigation()
         }
         composable(route = Graph.MEMBER){
             MemberNavigation()

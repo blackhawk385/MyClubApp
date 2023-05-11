@@ -2,12 +2,14 @@ package com.example.common.persistance
 
 import android.util.Log
 import com.example.common.Club
+import com.example.common.Comments
 import com.example.common.Posts
+import com.example.common.Request
 import com.example.common.data.User
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import java.util.*
-import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 object FirebaseUtil {
 
@@ -62,12 +64,12 @@ object FirebaseUtil {
     fun getSingleDocument(
         collection: String,
         uuid: String,
-        onSuccess: (User) -> Unit
+        onSuccess: (MutableMap<String, Any>) -> Unit
     ) {
         FirebaseFirestore.getInstance().collection(collection).whereEqualTo("uuid", uuid).limit(1)
             .get()
             .addOnSuccessListener {
-                it.documents.get(0).data?.let { it1 -> onSuccess(createUserData(it1)) }
+                it.documents.get(0).data?.let { it1 -> onSuccess(it1) }
             }
     }
 
@@ -110,6 +112,25 @@ object FirebaseUtil {
         isAdmin = map["admin"] as Boolean,
         gender = map["gender"].toString(),
         email = map["email"].toString()
+    )
+
+    fun createClubData(map: MutableMap<String, Any>) = Club(
+        uuid = map["uuid"].toString(),
+        requests = map["requests"] as List<Request>,
+        name = map["name"].toString(),
+        location = map["location"].toString(),
+        members = map["members"] as List<User>,
+        list = map["list"] as List<Posts>,
+        createdBy =  if(map["createdBy"] == null) User() else createUserData(map["createdBy"] as HashMap<String, Any>)
+    )
+
+    fun createPostData(map: MutableMap<String, Any>) = Posts(
+        title = map["title"].toString(),
+        description = map["description"].toString(),
+        comments = map["comments"] as List<Comments>,
+        associateClub = if(map["associateClub"] == null) Club() else createClubData(map["associateClub"] as HashMap<String, Any>),
+        link = map["link"].toString(),
+        author =  if(map["createdBy"] == null) User() else createUserData(map["createdBy"] as HashMap<String, Any>)
     )
 
     fun updateUserDetail() {

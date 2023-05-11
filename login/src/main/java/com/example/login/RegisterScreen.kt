@@ -104,7 +104,7 @@ fun RegisterScreen(navController: NavController) {
             is AppState.Success -> {
                 viewModel.createProfile(
                     fullname = fullNameEditText.value,
-                    gender = "Female",
+                    gender = genderState.value,
                     city = cityEditText.value,
                     dob = dob.value,
                     isAdmin = checkedState.value,
