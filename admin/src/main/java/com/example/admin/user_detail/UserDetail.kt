@@ -1,74 +1,154 @@
 package com.example.admin.user_detail
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.Divider
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.example.admin.AdminEnum
-import com.example.common.ButtonControl
-import com.example.common.DashboardTabView
-import com.example.common.DetailText
-import com.example.common.InputTextField
+import com.example.admin.R
+import com.example.common.*
+import com.example.common.data.AppState
 import com.example.common.data.User
 import com.example.common.persistance.FirebaseUtil
 import com.example.common.persistance.SharedPreference
+import com.example.common.persistance.USER_COLLECTION
 
-private var loggedInUser : User? = null
-private var userData : User? = null
+private var loggedInUser: User? = null
+private var userData: User? = null
+private var clubList: List<Club>? = null
+private var myPostList: List<Posts>? = null
+
+
+
 
 @Composable
 fun UserDetail(navController: NavHostController) {
     val context = LocalContext.current
 
-    //uuid from nav param
+    val viewModel: UserDetailViewModel = viewModel(factory = viewModelFactory {
+        UserDetailViewModel(UserDetailRepository())
+    })
+
+    val allPosts = viewModel.myPostState.collectAsState()
 
     LaunchedEffect(Unit) {
         //loggedIn User
-        SharedPreference(context).getUser {
-            loggedInUser = it
-            FirebaseUtil.getSingleDocument("user", it.uuid) {
+        SharedPreference(context).getUser { user ->
+            loggedInUser = user
+            FirebaseUtil.getSingleDocument(USER_COLLECTION, user.uuid) {
                 userData = FirebaseUtil.createUserData(it)
+                viewModel.getMyPostsData(user.uuid)
+
             }
         }
 
-
     }
 
-    Column {
+    LaunchedEffect(allPosts.value) {
+        when(allPosts.value){
+            is AppState.Error -> ""
+            is AppState.Idle -> ""
+            is AppState.Loading -> ""
+            is AppState.Success -> {
+                myPostList = allPosts.value.data
+            }
+        }
+    }
+
+    Column(modifier = Modifier.padding(20.dp)) {
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Text(
+            text = stringResource(R.string.label_user_profile),
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.align(CenterHorizontally)
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
         loggedInUser?.let {
             DetailText(data = it)
         }
 
-        DashboardTabView(tabTitles = arrayOf("Joined club", "Posts")) {
+        Spacer(modifier = Modifier.height(10.dp))
 
+        DashboardTabView(
+            tabTitles = arrayOf("Joined club", "Posts"),
+            modifier = Modifier.weight(6f)
+        ) {
+            when (it) {
+                0 -> {
+                    clubList?.let {  JoinedClub(navController, it)}
+                }
+                1 -> {
+                    myPostList?.let{PostList(navController, it)}
+                }
+            }
         }
         Column(modifier = Modifier.weight(1f)) {
             Divider(color = Color.Blue)
         }
 
         //if user is my club member
+
         ButtonControl(buttonText = "Remove From MyClub", onClick = {
 //            navController.navigate(AdminEnum.AdminProfile.name)
         })
 
         //user profile - if uuid same then show button otherwise
-        if(userData?.uuid != loggedInUser?.uuid) {
+        if (userData?.uuid == loggedInUser?.uuid) {
             ButtonControl(buttonText = "Update My Profile", onClick = {
                 navController.navigate(AdminEnum.AdminProfile.name)
             })
+        }
+    }
+}
+
+@Composable
+fun PostList(navController: NavController, postList : List<Posts>) {
+    LazyColumn(
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(16.dp)
+    ) {
+        items(postList.size) {
+            Column {
+                Text(
+                    text = postList[it].title,
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .clickable {
+                            navController.navigate(
+                                AdminEnum.PostDetails.name.plus(
+                                    "/${
+                                        postList.get(
+                                            it
+                                        ).uuid
+                                    }"
+                                )
+                            )
+                        },
+                    fontSize = 14.sp
+                )
+                Divider(thickness = 2.dp)
+            }
+
         }
     }
 }
@@ -148,6 +228,40 @@ fun UpdateProfile() {
                 .align(alignment = Alignment.End)
                 .padding(top = 10.dp)
         )
+
+    }
+}
+
+@Composable
+fun JoinedClub(navController: NavHostController, joinedClubList: List<Club>) {
+
+    LazyColumn(
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(16.dp)
+    ) {
+        joinedClubList.size.let {
+            items(it) {
+                Column {
+                    Text(
+                        text = joinedClubList[it].name,
+                        modifier = Modifier
+                            .padding(10.dp)
+                            .clickable {
+                                navController.navigate(
+                                    AdminEnum.ClubDetails.name.plus(
+                                        "/${
+                                            joinedClubList.get(
+                                                it
+                                            ).uuid
+                                        }"
+                                    )
+                                )
+                            }, fontWeight = FontWeight.Bold
+                    )
+                    Divider(thickness = 2.dp)
+                }
+            }
+        }
 
     }
 }

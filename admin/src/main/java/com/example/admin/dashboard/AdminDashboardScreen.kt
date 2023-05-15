@@ -5,19 +5,19 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.Divider
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.admin.AdminEnum
 import com.example.common.*
+import com.example.common.data.AppState
 import com.example.common.data.User
 import com.example.common.persistance.SharedPreference
 
@@ -34,8 +34,30 @@ fun AdminDashboard(navController: NavController) {
     val viewModel: AdminDashboardViewModel = viewModel(factory = viewModelFactory {
         AdminDashboardViewModel(AdminRepository())
     })
-    clubList = viewModel.state.collectAsState().value
+
+    val context = LocalContext.current
+    val myClubState = viewModel.state.collectAsState()
     postList = viewModel.postState.collectAsState().value
+
+    val showProgressBar = remember {
+        mutableStateOf(false)
+    }
+
+    LaunchedEffect(key1 = myClubState.value, block = {
+        when(myClubState.value){
+            is AppState.Error -> showMessage(context = context, "Error while loading data")
+            is AppState.Idle -> {}
+            is AppState.Loading -> {
+                showProgressBar.value = true
+            }
+            is AppState.Success -> {
+                showProgressBar.value = false
+                clubList = myClubState.value.data
+            }
+        }
+    })
+
+
 
     myClubList = clubList?.filter { club ->
         club.createdBy.uuid == user?.uuid
@@ -45,7 +67,8 @@ fun AdminDashboard(navController: NavController) {
         post.associateClub.uuid == user?.uuid
     }
 
-    val context = LocalContext.current
+
+
     LaunchedEffect(Unit, block = {
         SharedPreference(context).getUser {
             user = it
@@ -55,9 +78,12 @@ fun AdminDashboard(navController: NavController) {
     })
 
     Column(modifier = Modifier.fillMaxSize()) {
+        if (showProgressBar.value) {
+            CustomCircularProgressBar()
+        }
         DashboardTabView(
             tabTitles = arrayOf("My Clubs", "My Request", "All Clubs", "Club Posts"),
-            modifier = Modifier.weight(5f)
+            modifier = Modifier.weight(10f)
         ) {
             when (it) {
                 0 -> myClubList?.let { it1 -> MyClubs(navController, it1) }
@@ -67,10 +93,10 @@ fun AdminDashboard(navController: NavController) {
             }
         }
 
+
         Column(modifier = Modifier.weight(1f)) {
             Divider(color = Color.Blue)
         }
-
 
         ButtonControl(
             modifier = Modifier.align(CenterHorizontally),
@@ -107,9 +133,12 @@ fun ClubPosts(navController: NavController, posts: List<Posts>) {
             Column {
                 Text(
                     text = posts[it].title,
-                    modifier = Modifier.padding(10.dp).clickable {
-                        navController.navigate(AdminEnum.PostDetails.name.plus("/${posts?.get(it)?.uuid}"))
-                    }
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .clickable {
+                            navController.navigate(AdminEnum.PostDetails.name.plus("/${posts?.get(it)?.uuid}"))
+                        },
+                    fontSize = 14.sp
                 )
                 Divider(thickness = 2.dp)
             }
@@ -126,9 +155,11 @@ fun AllClubs(navController: NavController, clubList: List<Club>) {
     ) {
         items(clubList.size) {
             Column {
-                Text(text = clubList[it].name, modifier = Modifier.padding(10.dp).clickable {
-                    navController.navigate(AdminEnum.ClubDetails.name.plus("/${clubList?.get(it)?.uuid}"))
-                })
+                Text(text = clubList[it].name, modifier = Modifier
+                    .padding(10.dp)
+                    .clickable {
+                        navController.navigate(AdminEnum.ClubDetails.name.plus("/${clubList?.get(it)?.uuid}"))
+                    })
                 Divider(thickness = 2.dp)
             }
         }
@@ -169,7 +200,15 @@ fun MyClubs(navController: NavController, myClubList: List<Club>) {
                         modifier = Modifier
                             .padding(10.dp)
                             .clickable {
-                                navController.navigate(AdminEnum.ClubDetails.name.plus("/${clubList?.get(it)?.uuid}"))
+                                navController.navigate(
+                                    AdminEnum.ClubDetails.name.plus(
+                                        "/${
+                                            clubList?.get(
+                                                it
+                                            )?.uuid
+                                        }"
+                                    )
+                                )
                             }, fontWeight = FontWeight.Bold
                     )
                     Divider(thickness = 2.dp)

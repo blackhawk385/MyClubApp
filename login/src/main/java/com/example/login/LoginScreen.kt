@@ -102,10 +102,10 @@ fun LoginScreen(navController: NavController) {
             fontSize = 16.sp
         )
         //state hoisted
-        InputTextField(modifier = Modifier.fillMaxWidth(), value = emailEditText.value) {
+        InputTextField(modifier = Modifier.fillMaxWidth(), value = emailEditText.value, placeHolder = "Email") {
             emailEditText.value = it
         }
-        InputTextField(modifier = Modifier.fillMaxWidth(), value = passwordEditText.value) {
+        passwordInputField(modifier = Modifier.fillMaxWidth(), value = passwordEditText.value, placeHolder = "Password") {
             passwordEditText.value = it
         }
         ButtonControl(

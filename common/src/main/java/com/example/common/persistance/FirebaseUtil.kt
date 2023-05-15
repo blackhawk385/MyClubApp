@@ -4,21 +4,24 @@ import android.util.Log
 import com.example.common.Club
 import com.example.common.Comments
 import com.example.common.Posts
-import com.example.common.Request
 import com.example.common.data.User
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
-import java.util.*
 import kotlin.collections.HashMap
+
+const val REQUEST_COLLECTION = "requests"
+const val USER_COLLECTION = "user"
+const val POST_COLLECTION = "posts"
+const val CLUB_COLLECTION = "clubs"
+const val COMMENTS_COLLECTION = "comments"
 
 object FirebaseUtil {
 
     //add and retrive data
     fun <T : Any> addData(collection: String, data: T): Boolean {
-        return FirebaseFirestore.getInstance().collection(collection)
-            .add(
-                data
-            ).isSuccessful
+        return FirebaseFirestore.getInstance().collection(collection).add(
+            data
+        ).isSuccessful
     }
 
     //for single user object - login
@@ -62,18 +65,24 @@ object FirebaseUtil {
 
     //add and get post
     fun getSingleDocument(
-        collection: String,
-        uuid: String,
-        onSuccess: (MutableMap<String, Any>) -> Unit
+        collection: String, uuid: String, onSuccess: (MutableMap<String, Any>) -> Unit
     ) {
         FirebaseFirestore.getInstance().collection(collection).whereEqualTo("uuid", uuid).limit(1)
-            .get()
-            .addOnSuccessListener {
+            .get().addOnSuccessListener {
                 it.documents.get(0).data?.let { it1 -> onSuccess(it1) }
             }
     }
 
-    fun getAllData(
+//    fun getQueriedDocument(
+//        collection: String, uuid: String, onSuccess: (MutableMap<String, Any>) -> Unit
+//    ) {
+//        FirebaseFirestore.getInstance().collection(collection)
+//            .whereEqualTo(FieldPath.of("associateClub.uuid"), uuid).get().addOnSuccessListener {
+//                onSuccess(createPostData( it.documents))
+//            }
+//    }
+
+    fun getAllDataFromACollection(
         collection: String,
         onSuccess: (List<DocumentSnapshot>) -> Unit,
         onFailure: (Exception) -> Unit
@@ -81,17 +90,39 @@ object FirebaseUtil {
         FirebaseFirestore.getInstance().collection(collection).get()
             .addOnSuccessListener { result ->
                 onSuccess(result.documents)
-            }
-            .addOnFailureListener { exception ->
+            }.addOnFailureListener { exception ->
                 onFailure(exception)
                 Log.d("FireBAseUtil", "Error getting documents: ", exception)
             }
     }
 
+    fun getClubRelatedUserData() {
+
+        //get club objects where
+//        FirebaseFirestore.getInstance().collection()
+    }
+
+    fun getConditionalListOfDocumentSnapShot(collection: String, condition: String, uuid: String, onSuccess: (List<DocumentSnapshot>) -> Unit) {
+        //get all post document from post collection where author uuid is equal to provided
+        FirebaseFirestore.getInstance().collection(collection).whereEqualTo(condition, uuid).get()
+            .addOnSuccessListener {
+                onSuccess(it.documents)
+            }
+    }
+
+
     fun createClubData(list: List<DocumentSnapshot>): List<Club> {
         val clubs = mutableListOf<Club>()
         list.forEach {
             clubs.add(it.toObject(Club::class.java)!!)
+        }
+        return clubs
+    }
+
+    fun createCommentData(list: List<DocumentSnapshot>): List<Comments> {
+        val clubs = mutableListOf<Comments>()
+        list.forEach {
+            clubs.add(it.toObject(Comments::class.java)!!)
         }
         return clubs
     }
@@ -116,21 +147,17 @@ object FirebaseUtil {
 
     fun createClubData(map: MutableMap<String, Any>) = Club(
         uuid = map["uuid"].toString(),
-        requests = map["requests"] as List<Request>,
         name = map["name"].toString(),
         location = map["location"].toString(),
-        members = map["members"] as List<User>,
-        list = map["list"] as List<Posts>,
-        createdBy =  if(map["createdBy"] == null) User() else createUserData(map["createdBy"] as HashMap<String, Any>)
+        createdBy = if (map["createdBy"] == null) User() else createUserData(map["createdBy"] as HashMap<String, Any>)
     )
 
     fun createPostData(map: MutableMap<String, Any>) = Posts(
         title = map["title"].toString(),
         description = map["description"].toString(),
-        comments = map["comments"] as List<Comments>,
-        associateClub = if(map["associateClub"] == null) Club() else createClubData(map["associateClub"] as HashMap<String, Any>),
+        associateClub = if (map["associateClub"] == null) Club() else createClubData(map["associateClub"] as HashMap<String, Any>),
         link = map["link"].toString(),
-        author =  if(map["createdBy"] == null) User() else createUserData(map["createdBy"] as HashMap<String, Any>)
+        author = if (map["createdBy"] == null) User() else createUserData(map["createdBy"] as HashMap<String, Any>)
     )
 
     fun updateUserDetail() {
@@ -139,6 +166,21 @@ object FirebaseUtil {
 //            "lastname", "Smith",
 //            "age", 25
 //        )
+    }
+
+
+    fun updateClubWithPost(
+        clubUUID: String,
+        post: Posts,
+        onSuccess: (Boolean) -> Unit,
+    ) {
+//        FirebaseFirestore.getInstance().collection("clubs").document(clubUUID).update(
+//            FieldValue.arrayUnion(post)
+//        ).addOnSuccessListener {
+//            onSuccess(true)
+//        }.addOnFailureListener {
+//            onSuccess(false)
+//        }
     }
 
 

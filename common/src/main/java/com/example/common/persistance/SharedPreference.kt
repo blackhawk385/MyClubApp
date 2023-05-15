@@ -1,23 +1,11 @@
 package com.example.common.persistance
 
-import android.app.Application
 import android.content.Context
-import android.util.Log
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.datastore.core.DataStore
-import androidx.datastore.dataStore
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import com.codelab.android.datastore.UserPreferences
-import com.example.common.UserPreferencesSerializer
 import com.example.common.data.User
 import com.example.common.dataStore
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.map
-import java.io.IOException
 
 
 private val USER_FULL_NAME = stringPreferencesKey("user_full_name")

@@ -30,7 +30,6 @@ import com.example.login.LoginScreen
 import com.example.login.RegisterScreen
 import com.example.login.checkUserStatus
 import com.example.login.repository.RegisterRepository
-import com.example.member.MemberDashboard
 import com.example.member.MemberNavigation
 import com.example.myclubapp.ui.theme.MyClubAppTheme
 import kotlinx.coroutines.CoroutineScope

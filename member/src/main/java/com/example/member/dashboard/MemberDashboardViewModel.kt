@@ -1,19 +1,19 @@
-package com.example.admin.dashboard
+package com.example.member.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.admin.add_club.CLUB_COLLECTION
-import com.example.admin.postdetail.POST_COLLECTION
 import com.example.common.Club
 import com.example.common.Posts
 import com.example.common.data.AppState
+import com.example.common.persistance.CLUB_COLLECTION
+import com.example.common.persistance.POST_COLLECTION
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-class AdminDashboardViewModel(private val repository: AdminRepository) : ViewModel() {
+class MemberDashboardViewModel(val repository: MemberRepository) : ViewModel(){
 
     private val mutableState: MutableStateFlow<AppState<List<Club>>> =
         MutableStateFlow(AppState.Idle())
@@ -31,23 +31,11 @@ class AdminDashboardViewModel(private val repository: AdminRepository) : ViewMod
         }
     }
 
-    fun getMyPosts(){
+    fun getMyPosts(uuid: String){
         viewModelScope.launch {
-            repository.getAllPosts(POST_COLLECTION).collectLatest {
+            repository.getAllPosts(uuid).collectLatest {
                 postMutableState.value = it
             }
         }
     }
-
-//    fun getMyClubRequests(){
-//
-//    }
-//
-//    fun getAllClubs(){
-//
-//    }
-//
-//    fun getClubPosts(){
-//
-//    }
 }

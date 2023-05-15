@@ -1,4 +1,4 @@
-package com.example.admin.add_post
+package com.example.member.add_post
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,7 +10,8 @@ import kotlinx.coroutines.launch
 
 class AddPostViewModel(private val repository: AddPostRepository) : ViewModel() {
 
-    private val updateClubMutableState: MutableStateFlow<AppState<Boolean>> = MutableStateFlow(AppState.Idle())
+    private val updateClubMutableState: MutableStateFlow<AppState<Boolean>> = MutableStateFlow(
+        AppState.Idle())
     val updateClubState: StateFlow<AppState<Boolean>> = updateClubMutableState.asStateFlow()
 
     fun getClubs(): Flow<List<Club>?> {
@@ -23,7 +24,7 @@ class AddPostViewModel(private val repository: AddPostRepository) : ViewModel() 
 
     fun addPost(post: Posts) =
         repository.addPost(
-           post
+            post
         )
 
     fun updateClub(uuid: String, post: Posts){
@@ -33,5 +34,4 @@ class AddPostViewModel(private val repository: AddPostRepository) : ViewModel() 
             }
         }
     }
-
 }

@@ -1,4 +1,4 @@
-package com.example.admin.club_detail
+package com.example.member.club_detail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -6,12 +6,13 @@ import com.example.common.Club
 import com.example.common.Posts
 import com.example.common.Request
 import com.example.common.data.AppState
-import com.example.common.data.User
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-class ClubDetailViewModel(val repository: ClubDetailRepository): ViewModel() {
-
+class ClubDetailViewModel(private val repository: ClubDetailRepository) : ViewModel() {
     private val mutableState: MutableStateFlow<AppState<Club>> = MutableStateFlow<AppState<Club>>(
         AppState.Idle())
     val clubState: StateFlow<AppState<Club>> = mutableState.asStateFlow()
@@ -39,13 +40,4 @@ class ClubDetailViewModel(val repository: ClubDetailRepository): ViewModel() {
             }
         }
     }
-
-    fun getClubRequests(clubUUID: String){
-        viewModelScope.launch {
-//            repository.getRequestForClubFromFirebase(clubUUID).collectLatest {
-//                clubPostMutableState.value = it
-//            }
-        }
-    }
-
 }

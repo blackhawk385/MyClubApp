@@ -1,28 +1,37 @@
 package com.example.admin
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Divider
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.example.admin.club_detail.ClubDetailRepository
-import com.example.admin.club_detail.ClubDetailViewModel
 import com.example.admin.postdetail.PostDetailRepopsitory
 import com.example.admin.postdetail.PostDetailViewModel
 import com.example.common.*
 import com.example.common.data.AppState
 import com.example.common.data.User
+import com.example.common.persistance.SharedPreference
+import java.sql.Time
+import java.time.LocalDateTime
 
-private var postDetails : Posts? = null
+private var postDetails: Posts? = null
+private var loggedInUser: User? = null
+private var commentList: List<Comments>? = null
+
 
 @Composable
 fun PostDetails(navController: NavHostController, uuid: String?) {
@@ -36,10 +45,27 @@ fun PostDetails(navController: NavHostController, uuid: String?) {
     val showProgressBar = remember {
         mutableStateOf(false)
     }
+
+    val showAddCommentProgressBar = remember {
+        mutableStateOf(false)
+    }
+
+    val addComments = rememberSaveable() {
+        mutableStateOf("")
+    }
+
     val post: State<AppState<Posts>> = viewModel.postState.collectAsState()
+    val comments: State<AppState<List<Comments>>> = viewModel.getCommentsState.collectAsState()
+    val addCommentsState: State<AppState<Boolean>> = viewModel.commentsState.collectAsState()
 
     LaunchedEffect(key1 = Unit, block = {
-        uuid?.let { viewModel.getPostDetails(it) }
+        uuid?.let {
+            viewModel.getPostDetails(it)
+            viewModel.getComments(it)
+        }
+        SharedPreference(context).getUser {
+            loggedInUser = it
+        }
     })
 
     LaunchedEffect(key1 = post.value, block = {
@@ -54,36 +80,198 @@ fun PostDetails(navController: NavHostController, uuid: String?) {
         }
     })
 
-    Column() {
+    LaunchedEffect(key1 = addCommentsState.value, block = {
+        when (addCommentsState.value) {
+            is AppState.Error -> showMessage(context, "Error while adding comment")
+            is AppState.Idle -> {}
+            is AppState.Loading -> showAddCommentProgressBar.value = true
+            is AppState.Success -> {
+                showAddCommentProgressBar.value = false
+                addComments.value = ""
+                showMessage(context, "Comment added successfully")
+                uuid?.let { viewModel.getComments(it) }
+            }
+        }
+    })
+
+    LaunchedEffect(key1 = comments.value, block = {
+        when (comments.value) {
+            is AppState.Error -> showMessage(context, "Error while loading comments")
+            is AppState.Idle -> {}
+            is AppState.Loading -> {
+                showProgressBar.value = true
+            }
+            is AppState.Success -> {
+                showProgressBar.value = false
+                commentList = viewModel.getCommentsState.value.data
+            }
+        }
+    })
+
+    Column(modifier = Modifier.padding(20.dp)) {
 
         if (showProgressBar.value) {
             CustomCircularProgressBar()
         }
+        Text(
+            text = "Post Details",
+            modifier = Modifier
+                .padding(top = 10.dp)
+                .align(Alignment.CenterHorizontally),
+            fontWeight = FontWeight.Bold,
+            fontSize = 20.sp
+        )
+        Spacer(modifier = Modifier.height(10.dp))
 
         postDetails?.let {
-            Text(text = "Post Title")
-            Text(text = it.title)
-            Text(text = "Authored By")
-            Text(text = it.author.fullName)
-            Text(text = "Club")
-            Text(text = it.associateClub.name)
-            Text(text = "City")
-            Text(text = it.associateClub.location)
-            Text(text = "Description")
-            Text(text = it.description)
-        }
 
-        DashboardTabView(tabTitles = arrayOf("Members", "Posts", "Requests"), modifier = Modifier.weight(5f)) {
-            when (it) {
-                0 -> postDetails?.let { it1 -> PostComment(it1.comments) }
+            Row {
+                Text(
+                    text = "Post Title: ",
+                    fontSize = 20.sp,
+                    modifier = Modifier.alignByBaseline()
+                )
+
+                Text(
+                    text = it.title,
+                    fontSize = 12.sp,
+                    modifier = Modifier.alignByBaseline(),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            Row {
+                Text(
+                    text = "Authored By: ",
+                    fontSize = 20.sp,
+                    modifier = Modifier.alignByBaseline()
+                )
+
+                Text(
+                    text = it.author.fullName,
+                    fontSize = 12.sp,
+                    modifier = Modifier.alignByBaseline(),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            Row {
+                Text(
+                    text = "Club: ",
+                    fontSize = 20.sp,
+                    modifier = Modifier.alignByBaseline()
+                )
+
+                Text(
+                    text = it.associateClub.name,
+                    fontSize = 12.sp,
+                    modifier = Modifier.alignByBaseline(),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            Row {
+                Text(
+                    text = "City: ",
+                    fontSize = 20.sp,
+                    modifier = Modifier.alignByBaseline()
+                )
+
+                Text(
+                    text = it.associateClub.location,
+                    fontSize = 12.sp,
+                    modifier = Modifier.alignByBaseline(),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            Row {
+                Text(
+                    text = "Description: ",
+                    fontSize = 20.sp,
+                    modifier = Modifier.alignByBaseline()
+                )
+
+                Text(
+                    text = it.description,
+                    fontSize = 12.sp,
+                    modifier = Modifier.alignByBaseline(),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
-        Column(modifier = Modifier.weight(1f)) {
-            Divider(color = Color.Blue)
+
+        DashboardTabView(
+            tabTitles = arrayOf("Comments"), modifier = Modifier
+                .weight(3f)
+        ) {
+            when (it) {
+                0 -> commentList?.let { it1 ->
+                    PostComment(it1)
+                }
+            }
         }
 
-        ButtonControl(buttonText = "Delete Post if authored")
+        Spacer(Modifier.height(10.dp))
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+        ) {
+            Divider(color = Color.Blue, modifier = Modifier.background(Color.Yellow))
+            InputTextField(
+                modifier = Modifier.fillMaxWidth(),
+                value = addComments.value,
+                onValueChangeListner = {
+                    addComments.value = it
+                }, label = "Add comment"
+            )
 
+            Row {
+                ButtonControl(
+                    buttonText = "Add comment", onClick = {
+                        loggedInUser?.let { user ->
+                            postDetails?.uuid?.let { postUUID ->
+                                viewModel.addComments(
+                                    Comments(
+                                        addComments.value,
+                                        authoredOn = LocalDateTime.now().toString(),
+                                        author = user,
+                                        associatedPostUUID = uuid!!
+                                    )
+                                )
+                            }
+                        }
+                    }
+                )
+
+                Spacer(modifier = Modifier.width(10.dp))
+
+                if (showAddCommentProgressBar.value) {
+                    CustomCircularProgressBar(
+                        Modifier
+                            .size(40.dp)
+                            .align(Alignment.CenterVertically)
+                    )
+                }
+
+
+            }
+
+        }
+
+
+
+        if (loggedInUser?.uuid == postDetails?.author?.uuid) {
+            ButtonControl(
+                buttonText = "Delete Post",
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+        }
     }
 }
 

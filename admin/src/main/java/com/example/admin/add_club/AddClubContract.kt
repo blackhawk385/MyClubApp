@@ -6,4 +6,5 @@ import kotlinx.coroutines.flow.Flow
 
 interface AddClubContract {
     fun addNewClub(club: Club) : Flow<AppState<String>>
+    fun updateClub(club: Club) : Flow<AppState<String>>
 }

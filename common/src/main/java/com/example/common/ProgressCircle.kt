@@ -10,10 +10,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun CustomCircularProgressBar() {
+fun CustomCircularProgressBar(modifier: Modifier = Modifier.size(50.dp)) {
     Box(contentAlignment = Alignment.Center) {
         CircularProgressIndicator(
-            modifier = Modifier.size(100.dp),
+            modifier = modifier,
             color = Color.Green,
             strokeWidth = 10.dp
         )

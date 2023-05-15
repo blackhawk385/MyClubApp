@@ -14,6 +14,7 @@ import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -40,5 +41,30 @@ fun InputTextField(
 //            LocalFocusManager.current.moveFocus((FocusDirection.Down)
         }),
         enabled = enabled
+    )
+}
+
+@Composable
+fun passwordInputField(modifier: Modifier = Modifier, placeHolder: String = "",
+                      label: String = "", value: String, enabled: Boolean = true, onValueChangeListner: (String) -> Unit){
+    OutlinedTextField(
+        value = value,
+        onValueChange = {
+            onValueChangeListner(it)
+        },
+        placeholder = { Text(text = "place holder text") },
+        modifier = modifier,
+        singleLine = true,
+        maxLines = 1,
+        label = {
+            Text(label)
+        },
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+        keyboardActions = KeyboardActions(onNext = {
+//            LocalSoftwareKeyboardController.current?.hide()
+//            LocalFocusManager.current.moveFocus((FocusDirection.Down)
+        }),
+        enabled = enabled,
+        visualTransformation = PasswordVisualTransformation()
     )
 }

@@ -83,15 +83,6 @@ fun RegisterScreen(navController: NavController) {
 
     var dropDownExpanded by remember { mutableStateOf(false) }
 
-    if (dropDownExpanded) {
-        DropDownMenu(expanded = dropDownExpanded, list = listOf("Male", "Female"), onDismiss = {
-            dropDownExpanded = false
-        }, onClick = {
-            genderState.value = it
-            dropDownExpanded = false
-        })
-    }
-
     LaunchedEffect(viewModel.state.value) {
 
         when (registerUserState) {
@@ -141,6 +132,10 @@ fun RegisterScreen(navController: NavController) {
 
     ) {
 
+        if (showProgressBar.value) {
+            CustomCircularProgressBar()
+        }
+
         Text(
             text = stringResource(R.string.title_register),
             modifier = Modifier.padding(top = 100.dp),
@@ -177,6 +172,15 @@ fun RegisterScreen(navController: NavController) {
             enabled = false
         )
 
+        if (dropDownExpanded) {
+            DropDownMenu(expanded = dropDownExpanded, list = listOf("Male", "Female"), onDismiss = {
+                dropDownExpanded = false
+            }, onClick = {
+                genderState.value = it
+                dropDownExpanded = false
+            })
+        }
+
         InputTextField(
             modifier = Modifier
                 .fillMaxWidth()
@@ -196,10 +200,6 @@ fun RegisterScreen(navController: NavController) {
               dob.value = it
               showDialog.value = false
           })
-        }
-
-        if (showProgressBar.value) {
-            CustomCircularProgressBar()
         }
 
         //club admin checkbox
@@ -256,7 +256,7 @@ fun RegisterScreen(navController: NavController) {
 fun CustomCircularProgressBar() {
     Box(contentAlignment = Alignment.Center) {
         CircularProgressIndicator(
-            modifier = Modifier.size(100.dp),
+            modifier = Modifier.size(50.dp),
             color = Color.Green,
             strokeWidth = 10.dp
         )

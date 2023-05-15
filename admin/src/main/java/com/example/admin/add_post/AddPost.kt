@@ -8,6 +8,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -17,29 +18,36 @@ import com.example.admin.add_post.AddPostRepository
 import com.example.admin.add_post.AddPostViewModel
 import com.example.common.*
 import com.example.common.data.User
-import com.example.common.persistance.FirebaseUtil
 import com.example.common.persistance.SharedPreference
 import kotlinx.coroutines.flow.collectLatest
 
 
-private var loggedInUser : User? = null
+private var loggedInUser: User? = null
 private var selectedClub: Club? = null
+
 @Composable
-fun AddPost(navController: NavHostController) {
+fun AddPost(navController: NavHostController, uuid: String?) {
 
     val context = LocalContext.current
     val viewModel: AddPostViewModel = viewModel(factory = viewModelFactory {
         AddPostViewModel(AddPostRepository())
     })
 
-    val clubData = rememberSaveable() {
+    val allClubData = rememberSaveable() {
         mutableStateOf(listOf<Club>())
     }
     LaunchedEffect(Unit) {
-
-        viewModel.getClubs().collectLatest {
-            it?.let {
-                clubData.value = it
+        if(uuid != null){
+            viewModel.getAClubs(uuid).collectLatest {
+                it?.let {
+                    allClubData.value = it
+                }
+            }
+        }else {
+            viewModel.getClubs().collectLatest {
+                it?.let {
+                    allClubData.value = it
+                }
             }
         }
     }
@@ -85,19 +93,19 @@ fun AddPost(navController: NavHostController) {
             CustomCircularProgressBar()
         }
         Text(
-            text = "New Post",
+            text = stringResource(R.string.label_new_post),
             modifier = Modifier.padding(top = 100.dp),
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp
         )
         InputTextField(
-            modifier = Modifier.fillMaxWidth(), label = "Title", value = titleEditText.value,
+            modifier = Modifier.fillMaxWidth(), label = stringResource(R.string.add_post_title), value = titleEditText.value,
             onValueChangeListner = {
                 titleEditText.value = it
             }
         )
         InputTextField(
-            modifier = Modifier.fillMaxWidth(), label = "City", value = cityEditText.value,
+            modifier = Modifier.fillMaxWidth(), label = stringResource(R.string.add_post_city), value = cityEditText.value,
             onValueChangeListner = {
                 cityEditText.value = it
             }
@@ -105,7 +113,7 @@ fun AddPost(navController: NavHostController) {
 
         InputTextField(modifier = Modifier
             .fillMaxWidth(),
-            label = "Link",
+            label = stringResource(R.string.add_post_link),
             value = linkEditText.value,
             onValueChangeListner = {
                 linkEditText.value = it
@@ -113,13 +121,13 @@ fun AddPost(navController: NavHostController) {
 
         InputTextField(
             modifier = Modifier.fillMaxWidth(),
-            label = "Description",
+            label = stringResource(R.string.add_post_description),
             value = descriptionEditText.value,
             onValueChangeListner = {
                 descriptionEditText.value = it
             }
         )
-        //password field
+
         InputTextField(
             modifier = Modifier
                 .fillMaxWidth()
@@ -135,7 +143,7 @@ fun AddPost(navController: NavHostController) {
         )
 
         if (expanded) {
-            DropDownMenu(expanded, list = clubData.value, onDismiss = {
+            DropDownMenu(expanded, list = allClubData.value, onDismiss = {
                 expanded = false
             }, onSelected = {
                 expanded = false
@@ -143,26 +151,34 @@ fun AddPost(navController: NavHostController) {
             })
         }
         ButtonControl(
-            buttonText = "Post",
+            buttonText = stringResource(R.string.label_post),
             modifier = Modifier
                 .align(alignment = Alignment.End)
                 .padding(top = 10.dp), onClick = {
                 showProgressBar.value = true
-                if(!viewModel.addPost(
-                    title = titleEditText.value,
-                    city = cityEditText.value,
-                    desc = descriptionEditText.value,
-                    club = selectedClub ?: Club(),
-                    link = linkEditText.value,
-                     user = loggedInUser!!
-                )){
-                    showProgressBar.value = false
-                    navController.popBackStack()
-                }
+                val post = createPost(
+                    titleEditText.value,
+                    descriptionEditText.value,
+                    loggedInUser!!,
+                    linkEditText.value,
+                    selectedClub!!
+                )
+                viewModel.addPost(post)
+                navController.popBackStack()
             })
 
     }
 }
+
+fun createPost(title: String, desc: String, user: User, link: String, club: Club) =
+    Posts(
+        title = title,
+        description = desc,
+        author = user,
+        link = link,
+        associateClub = club
+    )
+
 
 @Composable
 fun DropDownMenu(
@@ -185,14 +201,16 @@ fun DropDownMenu(
             }, modifier = Modifier.fillMaxWidth()
         ) {
             list?.let {
-                it.forEach {
+                it.forEach { club ->
                     DropdownMenuItem(
                         onClick = {
-                            onSelected(it.name)
-                            selectedClub = it
+                            onSelected(club.name)
+                            selectedClub = club.copy(
+                                createdBy = club.createdBy.copy()
+                            )
                         }
                     ) {
-                        Text(text = it.name)
+                        Text(text = club.name)
                     }
                 }
             }

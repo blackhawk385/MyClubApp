@@ -1,7 +1,6 @@
 package com.example.admin
 
-import android.content.Context
-import androidx.compose.foundation.clickable
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,22 +18,26 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.admin.add_club.AddClubRepository
 import com.example.admin.add_club.AddClubViewModel
+import com.example.admin.club_detail.ClubDetailRepository
+import com.example.admin.club_detail.ClubDetailViewModel
 import com.example.common.*
 import com.example.common.data.AppState
 import com.example.common.data.User
 import com.example.common.persistance.SharedPreference
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 
 private var user: User? = null
 
 @Composable
-fun AddClub(navController: NavHostController) {
+fun AddClub(navController: NavHostController, uuid: String?) {
+
+    Log.d("AddClubFromDetail", "AddClub: $uuid")
 
     val viewModel: AddClubViewModel = viewModel(factory = viewModelFactory {
         AddClubViewModel(AddClubRepository())
+    })
+
+    val clubDetailViewModel: ClubDetailViewModel = viewModel(factory = viewModelFactory {
+        ClubDetailViewModel(ClubDetailRepository())
     })
     val context = LocalContext.current
 
@@ -59,7 +62,13 @@ fun AddClub(navController: NavHostController) {
     val showProgressBar = remember {
         mutableStateOf(false)
     }
+
+    val isEnabled = remember {
+        mutableStateOf(true)
+    }
+
     val appState = viewModel.state.collectAsState()
+    val clubDetailState = clubDetailViewModel.clubState.collectAsState()
 
     when (appState.value) {
         is AppState.Error -> {
@@ -70,15 +79,42 @@ fun AddClub(navController: NavHostController) {
         is AppState.Loading -> showProgressBar.value = true
         is AppState.Success -> {
             showProgressBar.value = false
-            navController.popBackStack()
+            navController.navigateUp()
 //            navController.navigate(AdminEnum.AdminDashboardScreen.name)
         }
     }
 
+    LaunchedEffect(key1 = clubDetailState.value, block = {
+        when (clubDetailState.value) {
+            is AppState.Error -> {
+                showProgressBar.value = false
+                showMessage(context, "Error while fetching club")
+            }
+            is AppState.Idle -> ""
+            is AppState.Loading -> showProgressBar.value = true
+            is AppState.Success -> {
+                showProgressBar.value = false
+                val clubDetail = clubDetailState.value.data
+
+                clubDetail?.let {
+                    clubNameEditText.value = it.name
+                    noOfRoomsEditText.value = it.numberOfRooms
+                    clubAddressEditText.value = it.location
+                    isEnabled.value = false
+                }
+            }
+        }
+    })
+
     LaunchedEffect(Unit) {
         SharedPreference(context).getUser {
             user = it
+            uuid?.let {
+                clubDetailViewModel.getClubDetails(it)
+            }
         }
+
+
     }
 
     Column(
@@ -109,17 +145,18 @@ fun AddClub(navController: NavHostController) {
             value = "Self",
             onValueChangeListner = {
                 ownerAdminEditText.value = it
-            },
-            enabled = false
+            }
         )
 
-        InputTextField(Modifier
-            .fillMaxWidth(),
+        InputTextField(
+            Modifier
+                .fillMaxWidth(),
             label = "No. Of Rooms",
             value = noOfRoomsEditText.value,
             onValueChangeListner = {
                 noOfRoomsEditText.value = it
-            })
+            }
+        )
 
         InputTextField(
             modifier = Modifier.fillMaxWidth(),
@@ -130,20 +167,37 @@ fun AddClub(navController: NavHostController) {
             }
         )
 
-        ButtonControl(
-            buttonText = "Add",
-            modifier = Modifier
-                .align(alignment = Alignment.End)
-                .padding(top = 10.dp), onClick = {
-                viewModel.addClub(
-                    Club(
-                        name = clubNameEditText.value,
-                        location = clubAddressEditText.value,
-                        createdBy = user!!
+        if (isEnabled.value) {
+            ButtonControl(
+                buttonText = "Add",
+                modifier = Modifier
+                    .align(alignment = Alignment.End)
+                    .padding(top = 10.dp), onClick = {
+                    viewModel.addClub(
+                        Club(
+                            name = clubNameEditText.value,
+                            location = clubAddressEditText.value,
+                            createdBy = user!!
+                        )
                     )
-                )
-            }
-        )
-
+                }
+            )
+        } else {
+            ButtonControl(
+                buttonText = "Update",
+                modifier = Modifier
+                    .align(alignment = Alignment.End)
+                    .padding(top = 10.dp), onClick = {
+                    viewModel.updateClub(
+                        Club(
+                            name = clubNameEditText.value,
+                            location = clubAddressEditText.value,
+                            createdBy = user!!
+                        )
+                    )
+                    navController.popBackStack()
+                }
+            )
+        }
     }
 }

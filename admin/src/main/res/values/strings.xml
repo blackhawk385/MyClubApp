@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">Admin</string>
+    <string name="label_post">Post</string>
+    <string name="add_post_description">Description</string>
+    <string name="add_post_link">Link</string>
+    <string name="add_post_city">City</string>
+    <string name="add_post_title">Title</string>
+    <string name="label_new_post">New Post</string>
+    <string name="label_user_profile">User Profile</string>
 </resources>
