@@ -4,9 +4,16 @@ import android.util.Log
 import com.example.common.Club
 import com.example.common.Comments
 import com.example.common.Posts
+import com.example.common.data.AppState
 import com.example.common.data.User
+import com.example.common.showMessage
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.tasks.await
 import kotlin.collections.HashMap
 
 const val REQUEST_COLLECTION = "requests"
@@ -102,7 +109,12 @@ object FirebaseUtil {
 //        FirebaseFirestore.getInstance().collection()
     }
 
-    fun getConditionalListOfDocumentSnapShot(collection: String, condition: String, uuid: String, onSuccess: (List<DocumentSnapshot>) -> Unit) {
+    fun getConditionalListOfDocumentSnapShot(
+        collection: String,
+        condition: String,
+        uuid: String,
+        onSuccess: (List<DocumentSnapshot>) -> Unit
+    ) {
         //get all post document from post collection where author uuid is equal to provided
         FirebaseFirestore.getInstance().collection(collection).whereEqualTo(condition, uuid).get()
             .addOnSuccessListener {
@@ -159,6 +171,26 @@ object FirebaseUtil {
         link = map["link"].toString(),
         author = if (map["createdBy"] == null) User() else createUserData(map["createdBy"] as HashMap<String, Any>)
     )
+
+
+    suspend fun loginFirebaseUser(email: String, password: String) =
+        Firebase.auth.signInWithEmailAndPassword(email, password)
+            .await().user?.let { createUser(it) }
+
+    fun createUser(user: FirebaseUser) = User(uuid = user.uid, email = user.email!!)
+
+    suspend fun registerFirebaseUser(email: String, password: String) =
+        Firebase.auth.createUserWithEmailAndPassword(email, password)
+            .await().user?.let { createUser(it) }
+
+    fun logoutFirebaseUser(){
+        Firebase.auth.signOut()
+    }
+
+    fun checkUserStatus(): Boolean {
+        return Firebase.auth.currentUser != null
+    }
+
 
     fun updateUserDetail() {
 //        FirebaseFirestore.getInstance().collection("users").document(user.id).update(

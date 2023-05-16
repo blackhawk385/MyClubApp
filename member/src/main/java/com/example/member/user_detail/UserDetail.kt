@@ -1,4 +1,4 @@
-package com.example.admin.user_detail
+package com.example.member.user_detail
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -6,9 +6,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.Divider
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.R
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -19,9 +19,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
-import com.example.admin.AdminEnum
-import com.example.admin.R
 import com.example.common.*
+import com.example.member.MemberEnum
 import com.example.common.data.AppState
 import com.example.common.data.User
 import com.example.common.persistance.FirebaseUtil
@@ -32,7 +31,6 @@ private var loggedInUser: User? = null
 private var userData: User? = null
 private var clubList: List<Club>? = null
 private var myPostList: List<Posts>? = null
-
 
 @Composable
 fun UserDetail(navController: NavHostController) {
@@ -73,10 +71,10 @@ fun UserDetail(navController: NavHostController) {
         Spacer(modifier = Modifier.height(10.dp))
 
         Text(
-            text = stringResource(R.string.label_user_profile),
+            text = "User Profile",
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.align(CenterHorizontally)
+            modifier = Modifier.align(Alignment.CenterHorizontally)
         )
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -104,16 +102,10 @@ fun UserDetail(navController: NavHostController) {
             Divider(color = Color.Blue)
         }
 
-        //if user is my club member
-
-        ButtonControl(buttonText = "Remove From MyClub", onClick = {
-//            navController.navigate(AdminEnum.AdminProfile.name)
-        })
-
         //user profile - if uuid same then show button otherwise
-        if (userData?.uuid == loggedInUser?.uuid) {
+        if (userData?.uuid != loggedInUser?.uuid) {
             ButtonControl(buttonText = "Update My Profile", onClick = {
-                navController.navigate(AdminEnum.AdminProfile.name)
+                navController.navigate(MemberEnum.MemberProfile.name)
             })
         }
     }
@@ -133,7 +125,7 @@ fun PostList(navController: NavController, postList : List<Posts>) {
                         .padding(10.dp)
                         .clickable {
                             navController.navigate(
-                                AdminEnum.PostDetails.name.plus(
+                                MemberEnum.PostDetails.name.plus(
                                     "/${
                                         postList.get(
                                             it
@@ -246,7 +238,7 @@ fun JoinedClub(navController: NavHostController, joinedClubList: List<Club>) {
                             .padding(10.dp)
                             .clickable {
                                 navController.navigate(
-                                    AdminEnum.ClubDetails.name.plus(
+                                    MemberEnum.ClubDetails.name.plus(
                                         "/${
                                             joinedClubList.get(
                                                 it

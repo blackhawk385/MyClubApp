@@ -47,6 +47,19 @@ fun ButtonControl(
     }
 }
 
-fun showMessage(context: Context, msg: String){
+fun showMessage(context: Context, msg: String) {
     Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+}
+
+@Composable
+fun LogoutButtonControl(modifier: Modifier = Modifier, onClick: () -> Unit = {}) {
+    Button(
+        onClick = {
+            onClick()
+        },
+        border = BorderStroke(width = 2.dp, color = Color.Black),
+        modifier = modifier,
+    ) {
+        Text(text = "Logout")
+    }
 }
