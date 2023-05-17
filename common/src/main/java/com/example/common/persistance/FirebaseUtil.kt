@@ -11,7 +11,9 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.Filter
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.tasks.await
 import kotlin.collections.HashMap
@@ -31,45 +33,6 @@ object FirebaseUtil {
         ).isSuccessful
     }
 
-    //for single user object - login
-//    fun getUserData(collection: String, uuid: String, onSuccess: (User) -> Unit) {
-//
-//        FirebaseFirestore.getInstance().collection(collection).whereEqualTo("uuid", uuid).get()
-//            .addOnSuccessListener {
-//                if (it.documents.size > 0) {
-//                    it.documents[0].let { document ->
-//                        onSuccess(
-//                            User(
-//                                uuid = document["uuid"].toString(),
-//                                fullName = document["fullName"].toString(),
-//                                gender = document["gender"].toString(),
-//                                email = document["email"].toString(),
-//                                dob = document["dob"].toString(),
-//                                city = document["city"].toString(),
-//                                isAdmin = document["admin"] as Boolean
-//                            )
-//                        )
-//                    }
-//                }
-//            }
-//    }
-
-//    fun getAllClubData(collection: String, onSuccess: (MutableList<Club>) -> Unit){
-//        val list = mutableListOf<Club>()
-//        FirebaseFirestore.getInstance().collection(collection).get()
-//            .addOnSuccessListener { result ->
-//                result.documents.toList()
-//                for (document in result) {
-//                    list.add(Club(name = document.data["name"].toString(), ))
-//                    Log.d("FireBAseUtil", "${document.id} => ${document.data}")
-//                }
-//                onSuccess(list)
-//            }
-//            .addOnFailureListener { exception ->
-//                Log.d("FireBAseUtil", "Error getting documents: ", exception)
-//            }
-//    }
-
     //add and get post
     fun getSingleDocument(
         collection: String, uuid: String, onSuccess: (MutableMap<String, Any>) -> Unit
@@ -79,15 +42,6 @@ object FirebaseUtil {
                 it.documents.get(0).data?.let { it1 -> onSuccess(it1) }
             }
     }
-
-//    fun getQueriedDocument(
-//        collection: String, uuid: String, onSuccess: (MutableMap<String, Any>) -> Unit
-//    ) {
-//        FirebaseFirestore.getInstance().collection(collection)
-//            .whereEqualTo(FieldPath.of("associateClub.uuid"), uuid).get().addOnSuccessListener {
-//                onSuccess(createPostData( it.documents))
-//            }
-//    }
 
     fun getAllDataFromACollection(
         collection: String,
@@ -183,7 +137,7 @@ object FirebaseUtil {
         Firebase.auth.createUserWithEmailAndPassword(email, password)
             .await().user?.let { createUser(it) }
 
-    fun logoutFirebaseUser(){
+    fun logoutFirebaseUser() {
         Firebase.auth.signOut()
     }
 
@@ -192,20 +146,34 @@ object FirebaseUtil {
     }
 
 
-    fun updateUserDetail() {
-//        FirebaseFirestore.getInstance().collection("users").document(user.id).update(
-//            "firstname", "John",
-//            "lastname", "Smith",
-//            "age", 25
-//        )
+     fun updateClubDetail(collection: String, data: Club, onSuccess: () -> Unit) {
+        FirebaseFirestore.getInstance().collection(collection)
+            .whereEqualTo("uuid", data.uuid)
+            .get().addOnSuccessListener {
+                it.forEach {
+                    it.reference.set(data, SetOptions.merge())
+                }
+                onSuccess()
+            }
+    }
+
+    fun updateUserDetail(collection: String, data: User, onSuccess: () -> Unit) {
+        FirebaseFirestore.getInstance().collection(collection)
+            .whereEqualTo("uuid", data.uuid)
+            .get().addOnSuccessListener {
+                it.forEach {
+                    it.reference.set(data, SetOptions.merge())
+                }
+                onSuccess()
+            }
     }
 
 
-    fun updateClubWithPost(
-        clubUUID: String,
-        post: Posts,
-        onSuccess: (Boolean) -> Unit,
-    ) {
+fun updateClubWithPost(
+    clubUUID: String,
+    post: Posts,
+    onSuccess: (Boolean) -> Unit,
+) {
 //        FirebaseFirestore.getInstance().collection("clubs").document(clubUUID).update(
 //            FieldValue.arrayUnion(post)
 //        ).addOnSuccessListener {
@@ -213,8 +181,8 @@ object FirebaseUtil {
 //        }.addOnFailureListener {
 //            onSuccess(false)
 //        }
-    }
+}
 
 
-    //add and get club
+//add and get club
 }

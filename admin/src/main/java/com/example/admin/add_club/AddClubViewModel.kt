@@ -14,11 +14,6 @@ class AddClubViewModel(val repository: AddClubContract) : ViewModel() {
         MutableStateFlow(AppState.Idle())
     val state: StateFlow<AppState<String>> = mutableState.asStateFlow()
 
-    private val updateClubMutableState: MutableStateFlow<AppState<String>> =
-        MutableStateFlow(AppState.Idle())
-    val updateState: StateFlow<AppState<String>> = updateClubMutableState.asStateFlow()
-
-
     fun addClub(club: Club) {
         viewModelScope.launch {
             repository.addNewClub(club).collectLatest {
@@ -30,7 +25,7 @@ class AddClubViewModel(val repository: AddClubContract) : ViewModel() {
     fun updateClub(club: Club) {
         viewModelScope.launch {
             repository.updateClub(club).collectLatest {
-                updateClubMutableState.value = it
+                mutableState.value = it
             }
         }
     }

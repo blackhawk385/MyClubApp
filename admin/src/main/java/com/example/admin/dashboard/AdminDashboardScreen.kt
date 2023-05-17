@@ -38,7 +38,6 @@ fun AdminDashboard(navController: NavController) {
     val viewModel: AdminDashboardViewModel = viewModel(factory = viewModelFactory {
         AdminDashboardViewModel(AdminRepository())
     })
-
     val context = LocalContext.current
     val myClubState = viewModel.state.collectAsState()
     postList = viewModel.postState.collectAsState().value
@@ -219,7 +218,7 @@ fun MyClubs(navController: NavController, myClubList: List<Club>) {
                                         }"
                                     )
                                 )
-                            }, fontWeight = FontWeight.Bold
+                            }
                     )
                     Divider(thickness = 2.dp)
                 }

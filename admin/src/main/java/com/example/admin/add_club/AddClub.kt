@@ -26,6 +26,7 @@ import com.example.common.data.User
 import com.example.common.persistance.SharedPreference
 
 private var user: User? = null
+var clubDetail: Club? = null
 
 @Composable
 fun AddClub(navController: NavHostController, uuid: String?) {
@@ -80,7 +81,19 @@ fun AddClub(navController: NavHostController, uuid: String?) {
         is AppState.Success -> {
             showProgressBar.value = false
             navController.navigateUp()
-//            navController.navigate(AdminEnum.AdminDashboardScreen.name)
+        }
+    }
+
+    when (appState.value) {
+        is AppState.Error -> {
+            showProgressBar.value = false
+            showMessage(context, "Error while adding club")
+        }
+        is AppState.Idle -> ""
+        is AppState.Loading -> showProgressBar.value = true
+        is AppState.Success -> {
+            showProgressBar.value = false
+            navController.navigateUp()
         }
     }
 
@@ -94,7 +107,7 @@ fun AddClub(navController: NavHostController, uuid: String?) {
             is AppState.Loading -> showProgressBar.value = true
             is AppState.Success -> {
                 showProgressBar.value = false
-                val clubDetail = clubDetailState.value.data
+                clubDetail = clubDetailState.value.data
 
                 clubDetail?.let {
                     clubNameEditText.value = it.name
@@ -188,14 +201,17 @@ fun AddClub(navController: NavHostController, uuid: String?) {
                 modifier = Modifier
                     .align(alignment = Alignment.End)
                     .padding(top = 10.dp), onClick = {
-                    viewModel.updateClub(
-                        Club(
+                    clubDetail?.let {
+                        val club = it.copy(
+                            uuid = it.uuid,
                             name = clubNameEditText.value,
                             location = clubAddressEditText.value,
-                            createdBy = user!!
+                            numberOfRooms = noOfRoomsEditText.value,
+                            createdBy = it.createdBy.copy()
+
                         )
-                    )
-                    navController.popBackStack()
+                        viewModel.updateClub(club)
+                    }
                 }
             )
         }

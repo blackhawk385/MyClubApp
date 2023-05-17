@@ -1,6 +1,5 @@
 package com.example.admin
 
-import android.widget.EditText
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -10,27 +9,43 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.example.admin.DropDownMenu
+import com.example.admin.admin_profile.AdminProfileRepository
+import com.example.admin.admin_profile.AdminProfileViewModel
 import com.example.common.*
+import com.example.common.data.AppState
 import com.example.common.data.User
 import com.example.common.persistance.FirebaseUtil
 import com.example.common.persistance.SharedPreference
+import com.example.common.persistance.USER_COLLECTION
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun AdminProfile(navController: NavHostController) {
+
+    val viewModel: AdminProfileViewModel = viewModel(factory = viewModelFactory {
+        AdminProfileViewModel(AdminProfileRepository())
+    })
+
+    val updateUserDetail = viewModel.userDetailState.collectAsState()
 
     val context = LocalContext.current
 
     var isEnabled by rememberSaveable { mutableStateOf(false) }
 
     val fullNameEditText = rememberSaveable() {
+        mutableStateOf("")
+    }
+
+    val uuid = rememberSaveable() {
         mutableStateOf("")
     }
 
@@ -54,6 +69,10 @@ fun AdminProfile(navController: NavHostController) {
         mutableStateOf("")
     }
 
+    val isAdminState = remember {
+        mutableStateOf(false)
+    }
+
     var dropDownExpanded by remember { mutableStateOf(false) }
 
     val showDialog = remember {
@@ -72,14 +91,36 @@ fun AdminProfile(navController: NavHostController) {
     LaunchedEffect(Unit) {
         //loggedIn User
         SharedPreference(context).getUser {
+            uuid.value = it.uuid
             fullNameEditText.value = it.fullName
             dob.value = it.dob
             cityEditText.value = it.city
             genderState.value = it.gender
             emailState.value = it.email
+            isAdminState.value = it.isAdmin
             showProgressBar.value = false
         }
     }
+
+    LaunchedEffect(key1 = updateUserDetail.value, block = {
+        when (updateUserDetail.value) {
+            is AppState.Error -> showMessage(context, "error while updating user details")
+            is AppState.Idle -> {}
+            is AppState.Loading -> showProgressBar.value = true
+            is AppState.Success -> {
+                FirebaseUtil.getSingleDocument(USER_COLLECTION, uuid.value) {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        SharedPreference(context).setUser(FirebaseUtil.createUserData(it))
+                        showProgressBar.value = false
+                        withContext(Dispatchers.Main) {
+                            navController.navigateUp()
+                        }
+                    }
+
+                }
+            }
+        }
+    })
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -154,7 +195,7 @@ fun AdminProfile(navController: NavHostController) {
             CustomCircularProgressBar()
         }
 
-        if(!isEnabled) {
+        if (!isEnabled) {
             ButtonControl(
                 buttonText = "Update",
                 modifier = Modifier
@@ -164,15 +205,25 @@ fun AdminProfile(navController: NavHostController) {
                 })
         }
 
-        if(isEnabled) {
+        if (isEnabled) {
             ButtonControl(
                 buttonText = "Done",
                 modifier = Modifier
                     .align(alignment = Alignment.End)
                     .padding(top = 10.dp), onClick = {
+                    viewModel.updateUserDetail(
+                        User(
+                            uuid = uuid.value,
+                            fullName = fullNameEditText.value,
+                            city = cityEditText.value,
+                            dob = dob.value,
+                            gender = genderState.value,
+                            isAdmin = isAdminState.value,
+                            email = emailState.value
+                        )
+                    )
                 })
         }
-
     }
 
 }
