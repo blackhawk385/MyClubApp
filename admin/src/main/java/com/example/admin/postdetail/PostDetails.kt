@@ -30,7 +30,6 @@ import java.time.LocalDateTime
 
 private var postDetails: Posts? = null
 private var loggedInUser: User? = null
-private var commentList: List<Comments>? = null
 
 
 @Composable
@@ -53,6 +52,7 @@ fun PostDetails(navController: NavHostController, uuid: String?) {
     val addComments = rememberSaveable() {
         mutableStateOf("")
     }
+    val commentList = remember { mutableStateListOf<Comments>()}
 
     val post: State<AppState<Posts>> = viewModel.postState.collectAsState()
     val comments: State<AppState<List<Comments>>> = viewModel.getCommentsState.collectAsState()
@@ -103,7 +103,7 @@ fun PostDetails(navController: NavHostController, uuid: String?) {
             }
             is AppState.Success -> {
                 showProgressBar.value = false
-                commentList = viewModel.getCommentsState.value.data
+                viewModel.getCommentsState.value.data?.let { commentList.addAll(it) }
             }
         }
     })
