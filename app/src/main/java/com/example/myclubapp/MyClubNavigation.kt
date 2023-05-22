@@ -6,7 +6,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.common.DashboardTabView
 import com.example.login.LoginEnum
-import com.example.login.LoginNavigation
 import com.example.login.LoginScreen
 import com.example.login.RegisterScreen
 
@@ -19,7 +18,7 @@ fun MyClubNavigation(){
     NavHost(navController = navController, startDestination = LoginEnum.LoginScreen.name){
 
         composable(MyClubEnum.LoginScreen.name){
-            LoginNavigation()
+//            LoginNavigation()
         }
 
         composable(MyClubEnum.DashboardScreen.name){

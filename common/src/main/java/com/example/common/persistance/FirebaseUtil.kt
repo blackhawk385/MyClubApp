@@ -1,12 +1,9 @@
 package com.example.common.persistance
 
 import android.util.Log
-import com.example.common.Club
-import com.example.common.Comments
-import com.example.common.Posts
+import com.example.common.*
 import com.example.common.data.AppState
 import com.example.common.data.User
-import com.example.common.showMessage
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
@@ -99,6 +96,14 @@ object FirebaseUtil {
             posts.add(it.toObject(Posts::class.java)!!)
         }
         return posts
+    }
+
+    fun createListOfRequestData(list: List<DocumentSnapshot>): List<Request>{
+        val request = mutableListOf<Request>()
+        list.forEach {
+            request.add(it.toObject(Request::class.java)!!)
+        }
+        return request
     }
 
     fun createUserData(map: MutableMap<String, Any>) = User(

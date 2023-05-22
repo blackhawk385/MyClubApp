@@ -59,6 +59,16 @@ dependencies {
     implementation project(':login')
     implementation project(':member')
     implementation project(':admin')
+    implementation project(':common:feature-api')
+    implementation project(':common:dependancy-provider')
+
+
+    implementation project(":login:login-feature-api")
+    implementation project(":login:login-feature-impl")
+    implementation project(":admin:admin-feature-api")
+    implementation project(":admin:admin-feature-impl")
+    implementation project(":member:member-feature-impl")
+    implementation project(":member:member-feature-api")
 
     implementation 'androidx.core:core-ktx:1.10.0'
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.1'

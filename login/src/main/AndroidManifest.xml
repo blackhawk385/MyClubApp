@@ -8,11 +8,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MyClubApp">
         <activity
+            android:name=".LoginMainActivity"
+            android:exported="false" />
+        <activity
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.MyClubApp">
-        </activity>
+            android:theme="@style/Theme.MyClubApp"></activity>
     </application>
 
 </manifest>

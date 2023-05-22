@@ -11,10 +11,11 @@ data class Club(
     val name: String = "",
     val location: String = "",
     val numberOfRooms: String = "",
+    val members: ArrayList<User> = arrayListOf(),
     val createdBy: User = User(),
 )
 
-data class Request(val requestedBy: User)
+data class Request(val requestedBy: User, val club: Club)
 
 data class Posts(
     val uuid: String = UUID.randomUUID().toString(),
