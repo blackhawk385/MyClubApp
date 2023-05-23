@@ -13,9 +13,7 @@ import com.example.common.persistance.FirebaseUtil.checkUserStatus
 import com.example.common.persistance.SharedPreference
 import com.example.core.dependencyprovider.DependencyProvider
 import com.example.jetcomposenavmultimodule.main.navigation.AppNavGraph
-import com.example.login_feature_api.LoginFeatureAPI
 import com.example.login_feature_impl.LoginFeatureImpl
-import com.example.member.MemberNavigation
 import com.example.member_feature_impl.MemberFeatureImpl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

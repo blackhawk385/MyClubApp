@@ -3,12 +3,11 @@ package com.example.member_feature_impl
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import androidx.navigation.navigation
+import com.example.admin.ClubDetail
 import com.example.admin.MemberProfile
+import com.example.admin.PostDetails
 import com.example.member.AddPost
-import com.example.member.ClubDetail
 import com.example.member_feature_api.MemberFeatureAPI
-import com.example.member_feature_impl.member.PostDetails
 import com.example.member_feature_impl.member.dashboard.MemberDashboard
 import com.example.member_feature_impl.member.navigation.MemberEnum
 import com.example.member_feature_impl.member.user_detail.UserDetail
@@ -41,8 +40,8 @@ class MemberFeatureImpl : MemberFeatureAPI {
             AddPost(navController = navController, it.arguments?.getString("uuid"))
         }
 
-        navGraphBuilder.composable(MemberEnum.PostDetails.name){
-            PostDetails(navController = navController)
+        navGraphBuilder.composable(MemberEnum.PostDetails.name.plus("/{uuid}")){
+            PostDetails(navController = navController, it.arguments?.getString("uuid"))
         }
 
         navGraphBuilder.composable(MemberEnum.MemberProfile.name){
@@ -50,7 +49,11 @@ class MemberFeatureImpl : MemberFeatureAPI {
         }
 
         navGraphBuilder.composable(MemberEnum.ClubDetails.name.plus("/{uuid}")){
-            ClubDetail(navController = navController, it.arguments?.getString("uuid"))
+            ClubDetail(navController = navController, it.arguments?.getString("uuid"), onAddNewPostClicked =  { uuid ->
+                navController.navigate(MemberEnum.AddPost.name.plus("?uuid=${uuid}"))
+            }, onUpdateClubDetailAdded =  { uuid ->
+//                navController.navigate(MemberEnum.AddClub.name.plus("?uuid=${uuid}"))
+            })
         }
 
         navGraphBuilder.composable(MemberEnum.UserDetail.name){

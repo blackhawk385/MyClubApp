@@ -1,12 +1,16 @@
-package com.example.member
+package com.example.admin
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Divider
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -14,21 +18,26 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.example.admin.club_detail.ClubDetailRepository
+import com.example.admin.club_detail.ClubDetailViewModel
 import com.example.common.*
 import com.example.common.data.AppState
 import com.example.common.data.User
 import com.example.common.persistance.SharedPreference
-import com.example.member_feature_impl.member.club_detail.ClubDetailRepository
-import com.example.member_feature_impl.member.club_detail.ClubDetailViewModel
-import com.example.member_feature_impl.member.navigation.MemberEnum
 
-//need club data with all members and posts
 private var clubDetails: Club? = null
 private var listOfPosts: List<Posts>? = null
+private var listOfRequests: List<List<Request>>? = null
 private var loggedInUser: User? = null
 
 @Composable
-fun ClubDetail(navController: NavHostController, uuid: String?) {
+fun ClubDetail(
+    navController: NavHostController,
+    uuid: String?,
+    onAddNewPostClicked: (String) -> Unit,
+    onUpdateClubDetailAdded: (String) -> Unit
+) {
+
     val context = LocalContext.current
 
     val viewModel: ClubDetailViewModel = viewModel(factory = viewModelFactory {
@@ -38,18 +47,14 @@ fun ClubDetail(navController: NavHostController, uuid: String?) {
     val showProgressBar = remember {
         mutableStateOf(false)
     }
-
-    val requestList = remember {
-        mutableListOf<Request>()
-    }
     val club: State<AppState<Club>> = viewModel.clubState.collectAsState()
     val posts: State<AppState<List<Posts>>> = viewModel.postState.collectAsState()
-    val getRequest: State<AppState<List<Request>>> = viewModel.requestsState.collectAsState()
 
     LaunchedEffect(key1 = Unit, block = {
         uuid?.let {
             viewModel.getClubDetails(it)
             viewModel.getClubPost(it)
+            viewModel.getClubRequests(it)
         }
 
         SharedPreference(context).getUser {
@@ -75,19 +80,8 @@ fun ClubDetail(navController: NavHostController, uuid: String?) {
             is AppState.Idle -> {}
             is AppState.Loading -> showProgressBar.value = true
             is AppState.Success -> {
-                listOfPosts = viewModel.postState.value.data
                 showProgressBar.value = false
-            }
-        }
-    })
-
-    LaunchedEffect(key1 = getRequest.value, block = {
-        when (getRequest.value) {
-            is AppState.Error -> showMessage(context, "Error while loading requests")
-            is AppState.Idle -> {}
-            is AppState.Loading -> {}
-            is AppState.Success -> {
-                getRequest.value.data?.let { requestList.addAll(it) }
+                listOfPosts = viewModel.postState.value.data
             }
         }
     })
@@ -101,7 +95,7 @@ fun ClubDetail(navController: NavHostController, uuid: String?) {
             text = "Club Details",
             modifier = Modifier
                 .padding(top = 10.dp)
-                .align(Alignment.CenterHorizontally),
+                .align(CenterHorizontally),
             fontWeight = FontWeight.Bold,
             fontSize = 20.sp
         )
@@ -158,33 +152,31 @@ fun ClubDetail(navController: NavHostController, uuid: String?) {
         }
 
         DashboardTabView(
-            tabTitles = arrayOf("Members", "Posts"),
+            tabTitles = arrayOf("Members", "Posts", "Requests"),
             modifier = Modifier.weight(4f)
         ) {
             when (it) {
                 0 -> {
-                    clubDetails?.let { it1 -> ClubMembers(members = it1.members) }
+//                    clubDetails?.let { it1 -> ClubMembers(members = it1) }
                 }
                 1 -> listOfPosts?.let { it1 -> ClubPosts(posts = it1) }
-                2 -> {
-                    ClubRequest(requests = requestList)
-                }
+                2 -> listOfRequests?.let { it1 -> ClubRequests(requests = it1) }
             }
         }
 
         Column(modifier = Modifier.weight(1f)) {
             ButtonControl(buttonText = "Add New Post", onClick = {
-                navController.navigate(MemberEnum.AddPost.name.plus("?uuid=${clubDetails?.uuid}"))
+                clubDetails?.uuid?.let { onAddNewPostClicked(it) }
+//                navController.navigate(AdminEnum.AddPost.name.plus("?uuid=${clubDetails?.uuid}"))
             })
-            
-            ButtonControl(buttonText = "Request to join", onClick = {
-                val request = Request(
-                    requestedBy = loggedInUser!!.copy(),
-                    club = clubDetails!!.copy()
-                )
-                clubDetails?.uuid?.let { viewModel.requestToJoinClub(request) }
-            })
+            if (clubDetails?.createdBy?.uuid == loggedInUser?.uuid && loggedInUser?.isAdmin == true) {
+                ButtonControl(buttonText = "Update Detail", onClick = {
+                    clubDetails?.uuid?.let { onUpdateClubDetailAdded(it) }
+//                    navController.navigate(AdminEnum.AddClub.name.plus("?uuid=${clubDetails?.uuid}"))
+                })
+            }
         }
+
 
     }
 }
@@ -199,25 +191,6 @@ fun ClubPosts(posts: List<Posts>) {
             Column {
                 Text(
                     text = posts[it].title,
-                    modifier = Modifier.padding(10.dp)
-                )
-                Divider(thickness = 2.dp)
-            }
-
-        }
-    }
-}
-
-@Composable
-fun ClubRequest(requests: List<Request>) {
-    LazyColumn(
-        modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(16.dp)
-    ) {
-        items(requests.size) {
-            Column {
-                Text(
-                    text = requests[it].requestedBy.fullName,
                     modifier = Modifier.padding(10.dp)
                 )
                 Divider(thickness = 2.dp)
@@ -245,5 +218,23 @@ fun ClubMembers(members: List<User>) {
 
         }
     }
+}
 
+@Composable
+fun ClubRequests(requests: List<List<Request>>) {
+    LazyColumn(
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(16.dp)
+    ) {
+        items(requests.size) {
+            Column {
+//                Text(
+//                    text = requests[it],
+//                    modifier = Modifier.padding(10.dp)
+//                )
+                Divider(thickness = 2.dp)
+            }
+
+        }
+    }
 }

@@ -98,7 +98,7 @@ object FirebaseUtil {
         return posts
     }
 
-    fun createListOfRequestData(list: List<DocumentSnapshot>): List<Request>{
+    fun createListOfRequestData(list: List<DocumentSnapshot>): List<Request> {
         val request = mutableListOf<Request>()
         list.forEach {
             request.add(it.toObject(Request::class.java)!!)
@@ -140,7 +140,9 @@ object FirebaseUtil {
 
     suspend fun registerFirebaseUser(email: String, password: String) =
         Firebase.auth.createUserWithEmailAndPassword(email, password)
-            .await().user?.let { createUser(it) }
+            .await().user?.let {
+                createUser(it)
+            }
 
     fun logoutFirebaseUser() {
         Firebase.auth.signOut()
@@ -151,7 +153,7 @@ object FirebaseUtil {
     }
 
 
-     fun updateClubDetail(collection: String, data: Club, onSuccess: () -> Unit) {
+    fun updateClubDetail(collection: String, data: Club, onSuccess: () -> Unit) {
         FirebaseFirestore.getInstance().collection(collection)
             .whereEqualTo("uuid", data.uuid)
             .get().addOnSuccessListener {
@@ -174,11 +176,11 @@ object FirebaseUtil {
     }
 
 
-fun updateClubWithPost(
-    clubUUID: String,
-    post: Posts,
-    onSuccess: (Boolean) -> Unit,
-) {
+    fun updateClubWithPost(
+        clubUUID: String,
+        post: Posts,
+        onSuccess: (Boolean) -> Unit,
+    ) {
 //        FirebaseFirestore.getInstance().collection("clubs").document(clubUUID).update(
 //            FieldValue.arrayUnion(post)
 //        ).addOnSuccessListener {
@@ -186,7 +188,7 @@ fun updateClubWithPost(
 //        }.addOnFailureListener {
 //            onSuccess(false)
 //        }
-}
+    }
 
 
 //add and get club

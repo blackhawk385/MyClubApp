@@ -92,7 +92,17 @@ fun UserDetail(navController: NavHostController) {
                     clubList?.let {  JoinedClub(navController, it)}
                 }
                 1 -> {
-                    myPostList?.let{PostList(navController, it)}
+                    myPostList?.let{PostList(it, onItemClick = { item ->
+                        navController.navigate(
+                            MemberEnum.PostDetails.name.plus(
+                                "/${
+                                    it.get(
+                                        item
+                                    ).uuid
+                                }"
+                            )
+                        )
+                    })}
                 }
             }
         }
@@ -101,42 +111,10 @@ fun UserDetail(navController: NavHostController) {
         }
 
         //user profile - if uuid same then show button otherwise
-        if (userData?.uuid != loggedInUser?.uuid) {
+        if (userData?.uuid == loggedInUser?.uuid) {
             ButtonControl(buttonText = "Update My Profile", onClick = {
                 navController.navigate(MemberEnum.MemberProfile.name)
             })
-        }
-    }
-}
-
-@Composable
-fun PostList(navController: NavController, postList : List<Posts>) {
-    LazyColumn(
-        modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(16.dp)
-    ) {
-        items(postList.size) {
-            Column {
-                Text(
-                    text = postList[it].title,
-                    modifier = Modifier
-                        .padding(10.dp)
-                        .clickable {
-                            navController.navigate(
-                                MemberEnum.PostDetails.name.plus(
-                                    "/${
-                                        postList.get(
-                                            it
-                                        ).uuid
-                                    }"
-                                )
-                            )
-                        },
-                    fontSize = 14.sp
-                )
-                Divider(thickness = 2.dp)
-            }
-
         }
     }
 }

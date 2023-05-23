@@ -19,7 +19,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
-import com.example.admin.AdminEnum
 import com.example.common.*
 import com.example.common.data.AppState
 import com.example.common.data.User
@@ -34,7 +33,7 @@ private var myPostList: List<Posts>? = null
 
 
 @Composable
-fun UserDetail(navController: NavHostController) {
+fun UserDetail(navController: NavHostController, onUpdateMyDetails: () -> Unit) {
     val context = LocalContext.current
 
     val viewModel: UserDetailViewModel = viewModel(factory = viewModelFactory {
@@ -112,7 +111,7 @@ fun UserDetail(navController: NavHostController) {
         //user profile - if uuid same then show button otherwise
         if (userData?.uuid == loggedInUser?.uuid) {
             ButtonControl(buttonText = "Update My Profile", onClick = {
-                navController.navigate(AdminEnum.AdminProfile.name)
+                onUpdateMyDetails()
             })
         }
     }
@@ -131,15 +130,15 @@ fun PostList(navController: NavController, postList : List<Posts>) {
                     modifier = Modifier
                         .padding(10.dp)
                         .clickable {
-                            navController.navigate(
-                                AdminEnum.PostDetails.name.plus(
-                                    "/${
-                                        postList.get(
-                                            it
-                                        ).uuid
-                                    }"
-                                )
-                            )
+//                            navController.navigate(
+//                                AdminEnum.PostDetails.name.plus(
+//                                    "/${
+//                                        postList.get(
+//                                            it
+//                                        ).uuid
+//                                    }"
+//                                )
+//                            )
                         },
                     fontSize = 14.sp
                 )
@@ -244,15 +243,15 @@ fun JoinedClub(navController: NavHostController, joinedClubList: List<Club>) {
                         modifier = Modifier
                             .padding(10.dp)
                             .clickable {
-                                navController.navigate(
-                                    AdminEnum.ClubDetails.name.plus(
-                                        "/${
-                                            joinedClubList.get(
-                                                it
-                                            ).uuid
-                                        }"
-                                    )
-                                )
+//                                navController.navigate(
+//                                    AdminEnum.ClubDetails.name.plus(
+//                                        "/${
+//                                            joinedClubList.get(
+//                                                it
+//                                            ).uuid
+//                                        }"
+//                                    )
+//                                )
                             }, fontWeight = FontWeight.Bold
                     )
                     Divider(thickness = 2.dp)

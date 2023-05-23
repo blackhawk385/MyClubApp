@@ -38,16 +38,4 @@ class AdminDashboardViewModel(private val repository: AdminRepository) : ViewMod
             }
         }
     }
-
-//    fun getMyClubRequests(){
-//
-//    }
-//
-//    fun getAllClubs(){
-//
-//    }
-//
-//    fun getClubPosts(){
-//
-//    }
 }

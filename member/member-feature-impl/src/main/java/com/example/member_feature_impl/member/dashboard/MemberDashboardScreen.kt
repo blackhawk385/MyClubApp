@@ -42,14 +42,21 @@ fun MemberDashboard(navController: NavController) {
 
     val context = LocalContext.current
     val myClubState = viewModel.state.collectAsState()
-    postList = viewModel.postState.collectAsState().value
+    val postState = viewModel.postState.collectAsState()
 
     val showProgressBar = remember {
         mutableStateOf(false)
     }
 
+    LaunchedEffect(key1 = postState.value, block = {
+        postList = postState.value
+        myPostList = postList?.filter { post ->
+            post.associateClub.uuid == user?.uuid
+        }
+    })
+
     LaunchedEffect(key1 = myClubState.value, block = {
-        when(myClubState.value){
+        when (myClubState.value) {
             is AppState.Error -> showMessage(context = context, "Error while loading data")
             is AppState.Idle -> {}
             is AppState.Loading -> {
@@ -58,21 +65,12 @@ fun MemberDashboard(navController: NavController) {
             is AppState.Success -> {
                 showProgressBar.value = false
                 clubList = myClubState.value.data
+                myClubList = clubList?.filter { club ->
+                    club.createdBy.uuid == user?.uuid
+                }
             }
         }
     })
-
-
-
-    myClubList = clubList?.filter { club ->
-        club.createdBy.uuid == user?.uuid
-    }
-
-    myPostList = postList?.filter { post ->
-        post.associateClub.uuid == user?.uuid
-    }
-
-
 
     LaunchedEffect(Unit, block = {
         SharedPreference(context).getUser {
@@ -91,9 +89,15 @@ fun MemberDashboard(navController: NavController) {
             modifier = Modifier.weight(10f)
         ) {
             when (it) {
-                0 -> myClubList?.let { it1 -> MyClubs(navController, it1) }
-                1 -> {}
-                2 -> clubList?.let { it1 -> AllClubs(navController, it1) }
+                0 -> myClubList?.let { list ->
+                    showList(list, navController)
+                }
+                1 -> {
+
+                }
+                2 -> clubList?.let { list ->
+                    showList(list, navController)
+                }
             }
         }
 
@@ -116,7 +120,9 @@ fun MemberDashboard(navController: NavController) {
                 navController.navigate(MemberEnum.AddPost.name)
             })
 
-        LogoutButtonControl(modifier = Modifier.align(End).clip(CircleShape)){
+        LogoutButtonControl(modifier = Modifier
+            .align(End)
+            .clip(CircleShape)) {
             FirebaseUtil.logoutFirebaseUser()
             val login = DependencyProvider.loginFeature()
             navController.navigate(login.loginRoute) {
@@ -126,6 +132,16 @@ fun MemberDashboard(navController: NavController) {
         }
 
     }
+}
+
+@Composable
+private fun showList(
+    list: List<Club>,
+    navController: NavController
+) {
+    ShowClubList(list, onItemClick = {
+        navController.navigate(MemberEnum.ClubDetails.name.plus("/${clubList?.get(it)?.uuid}"))
+    }, msg = "Club data not found")
 }
 
 @Composable
@@ -161,25 +177,6 @@ fun ClubPosts(navController: NavController, posts: List<Posts>) {
 }
 
 @Composable
-fun AllClubs(navController: NavController, clubList: List<Club>) {
-    LazyColumn(
-        modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(16.dp)
-    ) {
-        items(clubList.size) {
-            Column {
-                Text(text = clubList[it].name, modifier = Modifier
-                    .padding(10.dp)
-                    .clickable {
-                        navController.navigate(MemberEnum.ClubDetails.name.plus("/${clubList?.get(it)?.uuid}"))
-                    })
-                Divider(thickness = 2.dp)
-            }
-        }
-    }
-}
-
-@Composable
 fun MyRequests() {
 //    requests: List<Request>
 //    LazyColumn(
@@ -197,36 +194,4 @@ fun MyRequests() {
 //
 //        }
 //    }
-}
-
-@Composable
-fun MyClubs(navController: NavController, myClubList: List<Club>) {
-    LazyColumn(
-        modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(16.dp)
-    ) {
-        myClubList.size.let {
-            items(it) {
-                Column {
-                    Text(
-                        text = myClubList[it].name,
-                        modifier = Modifier
-                            .padding(10.dp)
-                            .clickable {
-                                navController.navigate(
-                                    MemberEnum.ClubDetails.name.plus(
-                                        "/${
-                                            clubList?.get(
-                                                it
-                                            )?.uuid
-                                        }"
-                                    )
-                                )
-                            }, fontWeight = FontWeight.Bold
-                    )
-                    Divider(thickness = 2.dp)
-                }
-            }
-        }
-    }
 }

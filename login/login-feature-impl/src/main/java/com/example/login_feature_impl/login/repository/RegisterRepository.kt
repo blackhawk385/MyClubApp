@@ -17,7 +17,7 @@ class RegisterRepository : IRegisterRepository {
         }
     }
 
-    //firestore user info
+    //firestore user infoh
     override fun saveUserInfo(
         fullName: String,
         dob: String,
